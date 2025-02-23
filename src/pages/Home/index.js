@@ -3,7 +3,7 @@ import YearsBlocksStack from "../../components/YearsBlocksStack";
 
 export default function Home() {
   return (
-    <Container>
+    <Container sx={{ py: 2 }}>
       <YearsBlocksStack />
     </Container>
   );

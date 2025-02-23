@@ -3,7 +3,7 @@ import { Typography, Button } from '@mui/material';
 export default function TableItem({ month, year }) {
   return (
     <Button
-      onClick={() => console.log(`Go to ${month}/${year} page info`)}
+      href={`/${year}/${month}`}
       variant="outlined"
       fullWidth={true}
     >
