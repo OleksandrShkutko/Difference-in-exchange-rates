@@ -1,5 +1,5 @@
 import { Container } from '@mui/material';
-import YearsBlocksStack from "../../components/YearsBlocksStack";
+import YearsBlocksStack from "./components/YearsBlocksStack";
 
 export default function Home() {
   return (
