@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Container, Box, Typography } from "@mui/material";
-import Breadcrumbs from "../../components/Breadcrumbs";
+import CalculationForm from "./components/CalculationForm";
+import Breadcrumbs from "components/Breadcrumbs";
 
 export default function MonthInfo() {
   const { year, month } = useParams();
@@ -13,7 +14,6 @@ export default function MonthInfo() {
 
   useEffect(() => {
     if (monthValidationError || yearValidationError) {
-      console.log('navigate');
       return navigate('/');
     }
   }, []);
@@ -22,7 +22,8 @@ export default function MonthInfo() {
     !monthValidationError
       ? Intl.DateTimeFormat('ua', { month: 'long' }).format(new Date(month))
       : '';
-  const date = monthString + ' ' + year;
+  const pageTitle = monthString + ' ' + year;
+  const dateOfSelling = new Date(year, month, 0).toLocaleDateString('uk-UA');
 
   const breadcrumbs = [
     {
@@ -30,7 +31,7 @@ export default function MonthInfo() {
       href: '/',
     },
     {
-      text: date,
+      text: pageTitle,
     },
   ];
 
@@ -39,9 +40,9 @@ export default function MonthInfo() {
       <Breadcrumbs breadcrumbs={breadcrumbs} />
 
       <Box component="section" marginTop={2}>
-        <Typography variant="h4" align="center" textTransform='capitalize'>
-          {date}
-        </Typography>
+        <Typography variant="h4" align="center" textTransform='capitalize' children={pageTitle} />
+
+        <CalculationForm dateOfSelling={dateOfSelling} />
       </Box>
     </Container>
   );
