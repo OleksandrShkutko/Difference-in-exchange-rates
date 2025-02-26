@@ -1,14 +1,26 @@
 import { useEffect, useState } from "react";
-import { Box, Button } from "@mui/material";
+import { Box } from "@mui/material";
 import Grid from '@mui/material/Grid2';
 import TextField from "components/TextField";
+import ButtonBlock from "../ButtonBlock";
+import getExchangeRates from "utils/getExchangeRates"
 import dayjs from 'dayjs';
 
 export default function CalculationForm({dateOfSelling}) {
+  // Variables section
+  const [dateOfSellingRate, setDateOfSellingRate] = useState();
+  const [dateOfSellingError, setDateOfSellingError] = useState(false);
+  const [dateOfSellingHelperText, setDateOfSellingHelperText] = useState('');
+
   const [dateOfArrival, setDateOfArrival] = useState('');
-  const [summInCurrency, setSummInCurrency] = useState('');
+  const [dateOfArrivalRate, setDateOfArrivalRate] = useState();
   const [dateOfArrivalError, setDateOfArrivalError] = useState(false);
   const [dateOfArrivalHelperText, setDateOfArrivalHelperText] = useState('');
+
+  const [summInCurrency, setSummInCurrency] = useState('');
+
+  const [disableButton, setDisableButton] = useState(false);
+  const [calculatedRateText, setCalculatedRateText] = useState('')
 
   const defaultInputsConfigs = [
     {
@@ -17,6 +29,8 @@ export default function CalculationForm({dateOfSelling}) {
         label: 'Дата продажу',
         disabled: true,
         value: dateOfSelling,
+        helperText: dateOfSellingHelperText,
+        error: dateOfSellingError
       },
       size: { xs: 12, sm: 6 }
     },
@@ -27,29 +41,9 @@ export default function CalculationForm({dateOfSelling}) {
         type: 'date',
         minDate: dateOfSelling,
         helperText: dateOfArrivalHelperText,
-        
-        onChange: (date) => {
-          if (
-            !date
-              || !dayjs(date).isValid()
-              || date.isBefore(dayjs(dateOfSelling, 'DD.MM.YYYY'), "day")
-          ) {
-            setDateOfArrival(null);
-            setDateOfArrivalError(true);
-            !date && setDateOfArrivalHelperText('');
-            
-            if (date) {
-              !dayjs(date).isValid()
-                && setDateOfArrivalHelperText('Некоректна дата зарахування');
-              date.isBefore(dayjs(dateOfSelling, 'DD.MM.YYYY'), "day") 
-                && setDateOfArrivalHelperText('Дата зарахування не може бути меншою за дату продажу');
-            }
-          } else {
-            const formatedDate = date ? date.format('L') : null;
-            setDateOfArrival(formatedDate);
-            setDateOfArrivalError(false);
-            setDateOfArrivalHelperText(formatedDate);
-          }
+        error: dateOfArrivalError,
+        onChange: (e) => {
+          handleDateOfArivalChange(e)
         },
       },
       size: { xs: 12, sm: 6 }
@@ -61,7 +55,7 @@ export default function CalculationForm({dateOfSelling}) {
         type: 'number',
         min: 0,
         onChange: (e) => {
-          setSummInCurrency(e.target.value);
+          handleSummInCurrencyChange(e.target.value)
         }
       },
     },
@@ -69,30 +63,101 @@ export default function CalculationForm({dateOfSelling}) {
 
   const [inputConfigs, setInputConfigs] = useState(defaultInputsConfigs);
 
+  const calculatedRate = (dateOfSellingRate - dateOfArrivalRate) * summInCurrency;
+
+  // useEffects section
+  useEffect(() => {
+    const dateForRequest = dayjs(dateOfSelling, 'DD.MM.YYYY').format('YYYY-MM-DD');
+
+    handleDateOfSellingFetch(dateForRequest)
+  }, [])
+
   useEffect(() => {
     setInputConfigs(defaultInputsConfigs);
-  }, [dateOfArrivalHelperText, summInCurrency]);
+  }, [dateOfSellingHelperText, dateOfArrivalHelperText, summInCurrency]);
 
+  // Functions section
+  // onChange functions
+  function handleDateOfArivalChange(date) {
+    setCalculatedRateText('');
+    if (
+      !date
+        || !dayjs(date).isValid()
+        || date.isBefore(dayjs(dateOfSelling, 'DD.MM.YYYY'), "day")
+    ) {
+      setDateOfArrival(null);
+      setDateOfArrivalError(true);
+      !date && setDateOfArrivalHelperText('');
+      
+      if (date) {
+        !dayjs(date).isValid()
+          && setDateOfArrivalHelperText('Некоректна дата зарахування');
+        date.isBefore(dayjs(dateOfSelling, 'DD.MM.YYYY'), "day") 
+          && setDateOfArrivalHelperText('Дата зарахування не може бути меншою за дату продажу');
+      }
+    } else {
+      const formatedDate = date ? date.format('L') : null;
+      const dateForRequest = dayjs(formatedDate, 'DD.MM.YYYY').format('YYYY-MM-DD');
+
+      setDateOfArrival(formatedDate);
+      handleDateOfArivalFetch(dateForRequest)
+    }
+  }
+
+  function handleSummInCurrencyChange(value) {
+    setCalculatedRateText('');
+    setSummInCurrency(value);
+  }
+
+  // Functions for getting exchangerates rates
+  function handleDateOfSellingFetch(date) {
+    getExchangeRates(date, handleDateOfSellingFetchSuccess, handleDateOfSellingFetchError);
+  }
+
+  function handleDateOfArivalFetch(date) {
+    getExchangeRates(date, handleDateOfArivalFetchSuccess, handleDateOfArivalFetchError);
+  }
+
+  // Exchangerates rates help functions
+  function handleDateOfSellingFetchSuccess(data) {
+    setDateOfSellingRate(data.rates[0].mid);
+    setDateOfSellingHelperText(`1USD = ${data.rates[0].mid}PLN`);
+  }
+
+  function handleDateOfSellingFetchError() {
+    setDateOfSellingError(true);
+    setDateOfSellingHelperText('Відсутні дані');
+
+    setDisableButton(true);
+  }
+
+  function handleDateOfArivalFetchSuccess(data) {
+    dateOfSellingError ? setDisableButton(true) : setDisableButton(false)
+
+    setDateOfArrivalError(false);
+    setDateOfArrivalRate(data.rates[0].mid);
+    setDateOfArrivalHelperText(`1USD = ${data.rates[0].mid}PLN`);
+  }
+
+  function handleDateOfArivalFetchError(error) {
+    setDisableButton(true);
+
+    setDateOfArrivalError(true);
+    setDateOfArrivalHelperText('Відсутні дані');
+  }
+
+  // The form submit function
   function handleSubmit(e) {
     e.preventDefault();
     if (!dateOfArrival || dateOfArrivalError) {
+      const arrivalHelperText =
+        dateOfArrivalError 
+          ? 'Некоректна дата зарахування'
+          : 'Це поле не може бути пустим';
+
       setDateOfArrivalError(true);
-      setInputConfigs(inputConfigs.map((config) => {
-        if (config.inputConfig.id === 'date-of-arrival') {
-          return {
-            ...config,
-            inputConfig: {
-              ...config.inputConfig,
-              error: 'true',
-              helperText:
-                dateOfArrivalError 
-                  ? 'Некоректна дата зарахування'
-                  : 'Це поле не може бути пустим',
-            }
-          }
-        }
-        return config;
-      }));
+      setDateOfArrivalHelperText(arrivalHelperText);
+
       console.log('Invalid date of arrival');
       return;
     }
@@ -113,7 +178,8 @@ export default function CalculationForm({dateOfSelling}) {
       console.log('Invalid summ in currency');
       return;
     }
-    console.log(dateOfSelling + '-' + dateOfArrival, 'Summ: ' + summInCurrency);
+
+    setCalculatedRateText(`Курсова різниця: ${calculatedRate.toFixed(4)} PLN`);
   }
 
   return (
@@ -136,9 +202,7 @@ export default function CalculationForm({dateOfSelling}) {
         ))}
       
         <Grid display="flex" justifyContent="center" size={{ xs: 12 }}>
-          <Button variant="contained" type='submit' size="large">
-            Розрахувати
-          </Button>
+          <ButtonBlock props={{disableButton, calculatedRateText}} />
         </Grid>
       </Grid>
     </Box>

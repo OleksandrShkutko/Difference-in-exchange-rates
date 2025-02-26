@@ -1,5 +1,4 @@
 import { FormControl, InputLabel, OutlinedInput, FormHelperText } from "@mui/material";
-import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
@@ -16,22 +15,20 @@ export default function TextField({props}) {
   return (
     props.type === 'date'
       ? (
-          <LocalizationProvider  dateAdapter={AdapterDayjs} adapterLocale="uk">
-            <DemoContainer components={['DatePicker']}>
-              <DatePicker
-                minDate={minDate}
-                onChange={props.onChange}
-                slotProps={{
-                  textField: {
-                    helperText: props.helperText,
-                    style: inputStyles,
-                    error: props.error,
-                  },
-                }}
-                aria-describedby={props.helperText && (props.id + "-helper-text")}
-                label={props.label}
-              />
-            </DemoContainer>
+          <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="uk">
+            <DatePicker
+              minDate={minDate}
+              onChange={props.onChange}
+              slotProps={{
+                textField: {
+                  helperText: props.helperText,
+                  style: inputStyles,
+                  error: props.error,
+                },
+              }}
+              aria-describedby={props.helperText && (props.id + "-helper-text")}
+              label={props.label}
+            />
           </LocalizationProvider>
         )
       : (
