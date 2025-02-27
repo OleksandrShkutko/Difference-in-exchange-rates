@@ -1,7 +1,7 @@
 import { Stack, Button, Typography } from "@mui/material";
 
-export default function ButtonBlock({props}) {
-  const showBottomText = props.disableButton || props.calculatedRateText;
+export default function ButtonBlock({disableButton, calculatedRateText}) {
+  const showBottomText = disableButton || calculatedRateText;
 
   const stackStyles = {
     maxWidth: '100%'
@@ -18,7 +18,7 @@ export default function ButtonBlock({props}) {
         variant="contained"
         type='submit'
         size="large"
-        disabled={props.disableButton}
+        disabled={disableButton}
         style={buttonStyles}
       >
         Розрахувати
@@ -28,10 +28,10 @@ export default function ButtonBlock({props}) {
         <Typography
           variant="h6"
           align="center"
-          color={props.disableButton ? 'error' : 'primary'}
+          color={disableButton ? 'error' : 'primary'}
         >
-          {props.disableButton && 'Розрахунок неможливий - відсутні дані'}
-          {props.calculatedRateText}
+          {disableButton && 'Розрахунок неможливий - відсутні дані'}
+          {calculatedRateText}
         </Typography>
       )}
     </Stack>

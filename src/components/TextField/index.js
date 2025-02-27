@@ -4,7 +4,7 @@ import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
 import 'dayjs/locale/uk';
 
-export default function TextField({props}) {
+export default function TextField(props) {
   const inputStyles = {
     width: 300,
     maxWidth: '100%',

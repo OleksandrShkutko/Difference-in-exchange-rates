@@ -166,8 +166,6 @@ export default function CalculationForm({lastDayOfMonth}) {
 
       setDateOfArrivalError(true);
       setDateOfArrivalHelperText(arrivalHelperText);
-
-      console.log('Invalid date of arrival');
       return;
     }
     if (!summInCurrency) {
@@ -184,7 +182,6 @@ export default function CalculationForm({lastDayOfMonth}) {
         }
         return config;
       }));
-      console.log('Invalid summ in currency');
       return;
     }
 
@@ -206,12 +203,15 @@ export default function CalculationForm({lastDayOfMonth}) {
             justifyContent="center"
             size={config.size || { xs: 12 }}
           >
-            <TextField props={config.inputConfig} />
+            <TextField {...config.inputConfig} />
           </Grid>
         ))}
       
         <Grid display="flex" justifyContent="center" size={{ xs: 12 }}>
-          <ButtonBlock props={{disableButton, calculatedRateText}} />
+          <ButtonBlock
+            disableButton={disableButton}
+            calculatedRateText={calculatedRateText}
+          />
         </Grid>
       </Grid>
     </Box>
