@@ -12,6 +12,11 @@ export default function TextField({props}) {
 
   const minDate = dayjs(props.minDate, 'DD.MM.YYYY');
 
+  const disableWeekends = (date) => {
+    const day = dayjs(date).day();
+    return day === 0 || day === 6;
+  };
+
   return (
     props.type === 'date'
       ? (
@@ -28,6 +33,7 @@ export default function TextField({props}) {
               }}
               aria-describedby={props.helperText && (props.id + "-helper-text")}
               label={props.label}
+              shouldDisableDate={props.disableWeekends && disableWeekends}
             />
           </LocalizationProvider>
         )

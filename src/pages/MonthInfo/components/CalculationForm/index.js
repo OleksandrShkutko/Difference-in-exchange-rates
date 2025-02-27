@@ -6,8 +6,9 @@ import ButtonBlock from "../ButtonBlock";
 import getExchangeRates from "utils/getExchangeRates"
 import dayjs from 'dayjs';
 
-export default function CalculationForm({dateOfSelling}) {
+export default function CalculationForm({lastDayOfMonth}) {
   // Variables section
+  const [dateOfSelling, setDateOfSelling] = useState(lastDayOfMonth);
   const [dateOfSellingRate, setDateOfSellingRate] = useState();
   const [dateOfSellingError, setDateOfSellingError] = useState(false);
   const [dateOfSellingHelperText, setDateOfSellingHelperText] = useState('');
@@ -30,7 +31,7 @@ export default function CalculationForm({dateOfSelling}) {
         disabled: true,
         value: dateOfSelling,
         helperText: dateOfSellingHelperText,
-        error: dateOfSellingError
+        error: dateOfSellingError,
       },
       size: { xs: 12, sm: 6 }
     },
@@ -42,6 +43,7 @@ export default function CalculationForm({dateOfSelling}) {
         minDate: dateOfSelling,
         helperText: dateOfArrivalHelperText,
         error: dateOfArrivalError,
+        disableWeekends: true,
         onChange: (e) => {
           handleDateOfArivalChange(e)
         },
@@ -67,7 +69,10 @@ export default function CalculationForm({dateOfSelling}) {
 
   // useEffects section
   useEffect(() => {
-    const dateForRequest = dayjs(dateOfSelling, 'DD.MM.YYYY').format('YYYY-MM-DD');
+    const lastDay = dayjs(dateOfSelling, 'DD.MM.YYYY');
+    const firstDay = dayjs(dateOfSelling, 'DD.MM.YYYY').startOf('month');
+    const dateForRequest =
+      `${firstDay.format('YYYY-MM-DD')}/${lastDay.format('YYYY-MM-DD')}`
 
     handleDateOfSellingFetch(dateForRequest)
   }, [])
@@ -120,8 +125,12 @@ export default function CalculationForm({dateOfSelling}) {
 
   // Exchangerates rates help functions
   function handleDateOfSellingFetchSuccess(data) {
-    setDateOfSellingRate(data.rates[0].mid);
-    setDateOfSellingHelperText(`1USD = ${data.rates[0].mid}PLN`);
+    const lastData = data.rates.pop();
+    const formatedDateOfSelling = dayjs(lastData.effectiveDate).format('DD.MM.YYYY');
+
+    setDateOfSelling(formatedDateOfSelling);
+    setDateOfSellingRate(lastData.mid);
+    setDateOfSellingHelperText(`1USD = ${lastData.mid}PLN`);
   }
 
   function handleDateOfSellingFetchError() {

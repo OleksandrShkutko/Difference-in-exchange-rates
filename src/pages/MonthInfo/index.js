@@ -23,7 +23,7 @@ export default function MonthInfo() {
       ? Intl.DateTimeFormat('ua', { month: 'long' }).format(new Date(month))
       : '';
   const pageTitle = monthString + ' ' + year;
-  const dateOfSelling = new Date(year, month, 0).toLocaleDateString('uk-UA');
+  const lastDayOfMonth = new Date(year, month, 0).toLocaleDateString('uk-UA');
 
   const breadcrumbs = [
     {
@@ -42,7 +42,7 @@ export default function MonthInfo() {
       <Box component="section" marginTop={2}>
         <Typography variant="h4" align="center" textTransform='capitalize' children={pageTitle} />
 
-        <CalculationForm dateOfSelling={dateOfSelling} />
+        <CalculationForm lastDayOfMonth={lastDayOfMonth} />
       </Box>
     </Container>
   );
