@@ -38,10 +38,8 @@ export default function MonthInfo() {
   return (
     <Container sx={{ py: 2 }}>
       <Breadcrumbs breadcrumbs={breadcrumbs} />
-
       <Box component="section" marginTop={2}>
         <Typography variant="h4" align="center" textTransform='capitalize' children={pageTitle} />
-
         <CalculationForm lastDayOfMonth={lastDayOfMonth} />
       </Box>
     </Container>

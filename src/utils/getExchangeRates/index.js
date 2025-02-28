@@ -1,14 +1,16 @@
-export default function getExchangeRates(date, doOnSuccess = () => {}, doOnError = () => {}) {
-  fetch(`https://api.nbp.pl/api/exchangerates/rates/a/usd/${date}`)
-    .then(response => {
-      if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(data => doOnSuccess(data))
-    .catch(error => {
-      doOnError(error);
-      console.error('Fetch error:', error.message);
-    });
+import { ResponseTypes } from '../../constants';
+
+const getExchangeRates = async(date) => {
+  try {
+    const response = await fetch(`https://api.nbp.pl/api/exchangerates/rates/a/usd/${date}`);
+    if (!response.ok) {
+      return { type: ResponseTypes.Error, content: `HTTP error! Status: ${response.status}`};
+    }
+    return { type: ResponseTypes.Success, content: await response.json() }
+  } catch (error) {
+    console.error('Fetch error:', error.message);
+    return { type: 'error', content: error};
+  }
 }
+
+export default getExchangeRates;

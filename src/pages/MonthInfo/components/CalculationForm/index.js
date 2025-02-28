@@ -5,6 +5,8 @@ import TextField from "components/TextField";
 import ButtonBlock from "../ButtonBlock";
 import getExchangeRates from "utils/getExchangeRates"
 import dayjs from 'dayjs';
+import { ResponseTypes } from "../../../../constants";
+import { createInputConfigs } from "../../../Home/components/Table/createInputConfigs";
 
 export default function CalculationForm({lastDayOfMonth}) {
   // Variables section
@@ -19,53 +21,23 @@ export default function CalculationForm({lastDayOfMonth}) {
   const [dateOfArrivalHelperText, setDateOfArrivalHelperText] = useState('');
 
   const [summInCurrency, setSummInCurrency] = useState('');
+  const [summInCurrencyHelperText, setSummInCurrencyHelperText] = useState('');
 
   const [disableButton, setDisableButton] = useState(false);
   const [calculatedRateText, setCalculatedRateText] = useState('')
 
-  const defaultInputsConfigs = [
-    {
-      inputConfig: {
-        id: 'date-of-selling',
-        label: 'Дата продажу',
-        disabled: true,
-        value: dateOfSelling,
-        helperText: dateOfSellingHelperText,
-        error: dateOfSellingError,
-      },
-      size: { xs: 12, sm: 6 }
-    },
-    {
-      inputConfig: {
-        id: 'date-of-arrival',
-        label: 'Дата зарахування',
-        type: 'date',
-        minDate: dateOfSelling,
-        helperText: dateOfArrivalHelperText,
-        error: dateOfArrivalError,
-        disableWeekends: true,
-        onChange: (e) => {
-          handleDateOfArivalChange(e)
-        },
-      },
-      size: { xs: 12, sm: 6 }
-    },
-    {
-      inputConfig: {
-        id: 'summ-in-currency',
-        label: 'Сума в USD',
-        type: 'number',
-        min: 0,
-        onChange: (e) => {
-          handleSummInCurrencyChange(e.target.value)
-        }
-      },
-    },
-  ];
+  const inputConfigs = createInputConfigs({
+    dateOfSelling,
+    dateOfSellingHelperText,
+    dateOfSellingError,
+    dateOfArrivalHelperText,
+    dateOfArrivalError,
+    handleDateOfArivalChange,
+    summInCurrencyHelperText,
+    handleSummInCurrencyChange
+  });
 
-  const [inputConfigs, setInputConfigs] = useState(defaultInputsConfigs);
-
-  const calculatedRate = (dateOfSellingRate - dateOfArrivalRate) * summInCurrency;
+  const calculatedRate = (dateOfArrivalRate - dateOfSellingRate) * summInCurrency;
 
   // useEffects section
   useEffect(() => {
@@ -76,10 +48,6 @@ export default function CalculationForm({lastDayOfMonth}) {
 
     handleDateOfSellingFetch(dateForRequest)
   }, [])
-
-  useEffect(() => {
-    setInputConfigs(defaultInputsConfigs);
-  }, [dateOfSellingHelperText, dateOfArrivalHelperText, summInCurrency]);
 
   // Functions section
   // onChange functions
@@ -111,21 +79,32 @@ export default function CalculationForm({lastDayOfMonth}) {
 
   function handleSummInCurrencyChange(value) {
     setCalculatedRateText('');
+    setSummInCurrencyHelperText('');
     setSummInCurrency(value);
   }
 
   // Functions for getting exchangerates rates
-  function handleDateOfSellingFetch(date) {
-    getExchangeRates(date, handleDateOfSellingFetchSuccess, handleDateOfSellingFetchError);
+  async function handleDateOfSellingFetch(date) {
+    const data = await getExchangeRates(date);
+    if (data.type === ResponseTypes.Success) {
+      handleDateOfSellingFetchSuccess(data.content);
+    } else if (data.type === ResponseTypes.Error) {
+      handleDateOfSellingFetchError(data.content);
+    }
   }
 
-  function handleDateOfArivalFetch(date) {
-    getExchangeRates(date, handleDateOfArivalFetchSuccess, handleDateOfArivalFetchError);
+  async function handleDateOfArivalFetch(date) {
+    const data = await getExchangeRates(date);
+    if (data.type === ResponseTypes.Success) {
+      handleDateOfArivalFetchSuccess(data.content);
+    } else if (data.type === ResponseTypes.Error) {
+      handleDateOfArivalFetchError(data.content);
+    }
   }
 
   // Exchangerates rates help functions
   function handleDateOfSellingFetchSuccess(data) {
-    const lastData = data.rates.pop();
+    const lastData = data.rates[data.rates.length - 2];
     const formatedDateOfSelling = dayjs(lastData.effectiveDate).format('DD.MM.YYYY');
 
     setDateOfSelling(formatedDateOfSelling);
@@ -169,20 +148,7 @@ export default function CalculationForm({lastDayOfMonth}) {
       return;
     }
     if (!summInCurrency) {
-      setInputConfigs(inputConfigs.map((config) => {
-        if (config.inputConfig.id === 'summ-in-currency') {
-          return {
-            ...config,
-            inputConfig: {
-              ...config.inputConfig,
-              error: 'true',
-              helperText: 'Це поле не може бути пустим',
-            }
-          }
-        }
-        return config;
-      }));
-      return;
+      setSummInCurrencyHelperText('Це поле не може бути пустим');
     }
 
     setCalculatedRateText(`Курсова різниця: ${calculatedRate.toFixed(4)} PLN`);

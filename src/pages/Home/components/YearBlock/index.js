@@ -4,7 +4,7 @@ import Table from '../Table';
 export default function YearTable({date}) {
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
-  const monthArray = Array.from({length: month}, (_, i) => i + 1).reverse();
+  const monthArray = Array.from(Array(month), (_, i) => i + 1).reverse();
 
   return (
     <Box>
